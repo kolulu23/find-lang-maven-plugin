@@ -12,8 +12,14 @@ import lombok.ToString;
 @Setter
 @ToString
 public class LanguageUsage {
+    public static final String CSV_HEADER = "FileName,LineNumber,Column,Line";
+
     private String filename;
-    private String line;
     private Integer lineNumber;
     private Integer column;
+    private String line;
+
+    public String toCsvRow() {
+        return filename + "," + lineNumber + "," + column + "," + line;
+    }
 }

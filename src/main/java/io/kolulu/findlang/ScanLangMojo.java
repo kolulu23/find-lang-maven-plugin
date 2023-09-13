@@ -7,8 +7,11 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Scan project source files with language regex matcher.
@@ -32,10 +35,17 @@ public class ScanLangMojo extends AbstractMojo {
             return;
         }
         getLog().warn("Scanning files under path: " + sourceRoots.toString());
-        try (SourceRootReader rootReader = new SourceRootReader(sourceRoots, getLog())) {
+        File report = new File(mavenProject.getBasedir(), "report.csv");
+
+        try (
+                SourceRootReader rootReader = new SourceRootReader(sourceRoots, getLog());
+                LanguageUsageCsvWriter writer = new LanguageUsageCsvWriter(report)
+        ) {
+            writer.getWriter().write(LanguageUsage.CSV_HEADER + "\n");
             RegexLanguageMatcher matcher = new RegexLanguageMatcher(Languages.CHINESE);
             for (SourceFileReader reader : rootReader.getReaders()) {
-                getLog().warn(matcher.process(reader).toString());
+                getLog().info("Write " + reader.getPath() + " to report");
+                writer.write(matcher.process(reader).collect(Collectors.toList()));
             }
         } catch (IOException e) {
             throw new MojoFailureException(e);
