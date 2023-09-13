@@ -9,7 +9,6 @@ import org.apache.maven.project.MavenProject;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,6 +27,15 @@ public class ScanLangMojo extends AbstractMojo {
     @Parameter(defaultValue = "${project.compileSourceRoots}", required = true, readonly = true)
     List<String> sourceRoots;
 
+    @Parameter
+    String pattern;
+
+    @Parameter(defaultValue = "true")
+    Boolean skipComments;
+
+    @Parameter(defaultValue = "report.csv")
+    String reportFileName;
+
     @Override
     public void execute() throws MojoFailureException {
         if ("pom".equals(mavenProject.getPackaging())) {
@@ -35,20 +43,43 @@ public class ScanLangMojo extends AbstractMojo {
             return;
         }
         getLog().warn("Scanning files under path: " + sourceRoots.toString());
-        File report = new File(mavenProject.getBasedir(), "report.csv");
-
         try (
-                SourceRootReader rootReader = new SourceRootReader(sourceRoots, getLog());
-                LanguageUsageCsvWriter writer = new LanguageUsageCsvWriter(report)
+                SourceRootReader rootReader = createSourceReader();
+                LanguageUsageCsvWriter writer = createUsageWriter()
         ) {
-            writer.getWriter().write(LanguageUsage.CSV_HEADER + "\n");
-            RegexLanguageMatcher matcher = new RegexLanguageMatcher(Languages.CHINESE);
+            LanguageUsageRegexFinder finder = createUsageFinder();
             for (SourceFileReader reader : rootReader.getReaders()) {
-                getLog().info("Write " + reader.getPath() + " to report");
-                writer.write(matcher.process(reader).collect(Collectors.toList()));
+                List<LanguageUsage> usages = finder.process(reader).collect(Collectors.toList());
+                if (!usages.isEmpty()) {
+                    getLog().info("Found " + usages.size() + " usages in " + reader.getPath().getFileName());
+                }
+                writer.write(usages);
+                reader.close();
             }
         } catch (IOException e) {
             throw new MojoFailureException(e);
         }
+    }
+
+    private SourceRootReader createSourceReader() {
+        return new SourceRootReader(sourceRoots, getLog());
+    }
+
+    private LanguageUsageCsvWriter createUsageWriter() throws IOException {
+        File report = new File(mavenProject.getBasedir(), reportFileName);
+        return new LanguageUsageCsvWriter(report);
+    }
+
+    private LanguageUsageRegexFinder createUsageFinder() {
+        LanguageUsageRegexFinder finder;
+        if (pattern == null || pattern.isEmpty()) {
+            // The default is to find any kind of chinese except comments
+            finder = new LanguageUsageRegexFinder(Languages.CHINESE_LITERALS_ONLY)
+                    .setSkipComments(true);
+        } else {
+            finder = new LanguageUsageRegexFinder(pattern)
+                    .setSkipComments(skipComments);
+        }
+        return finder;
     }
 }

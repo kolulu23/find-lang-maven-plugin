@@ -1,5 +1,6 @@
 package io.kolulu.findlang;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -11,15 +12,26 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
+@JsonPropertyOrder(value = {"filename", "lineNumber", "column", "line"})
 public class LanguageUsage {
-    public static final String CSV_HEADER = "FileName,LineNumber,Column,Line";
 
+    /**
+     * Absolute path of the file being scanned
+     */
     private String filename;
-    private Integer lineNumber;
-    private Integer column;
-    private String line;
 
-    public String toCsvRow() {
-        return filename + "," + lineNumber + "," + column + "," + line;
-    }
+    /**
+     * Line number of target language appearance
+     */
+    private Integer lineNumber;
+
+    /**
+     * Column index of the first match
+     */
+    private Integer column;
+
+    /**
+     * The whole line being processed as a general reference
+     */
+    private String line;
 }

@@ -29,4 +29,12 @@ class LanguagePatternTest {
         Assertions.assertTrue(matcher.find());
         Assertions.assertEquals(14, matcher.start());
     }
+
+    @Test
+    void chinese2() {
+        Pattern pattern = Pattern.compile(Languages.CHINESE_LITERALS_ONLY.getPattern());
+        String target = "String x = \"C\"; // Has 中文注释.";
+        Matcher matcher = pattern.matcher(target);
+        Assertions.assertFalse(matcher.find());
+    }
 }

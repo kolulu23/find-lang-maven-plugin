@@ -1,13 +1,12 @@
 package io.kolulu.findlang;
 
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.SequenceWriter;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import lombok.Getter;
-import lombok.SneakyThrows;
 
-import java.io.BufferedWriter;
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.Collection;
 
 /**
@@ -17,23 +16,33 @@ import java.util.Collection;
 @Getter
 public class LanguageUsageCsvWriter implements Closeable {
 
+    /**
+     * The underlying writer reference
+     */
     private final BufferedWriter writer;
+
+    /**
+     * The directly managed csv writer.
+     */
+    private final SequenceWriter csvWriter;
+
 
     public LanguageUsageCsvWriter(File file) throws IOException {
         this.writer = new BufferedWriter(new FileWriter(file, false));
+        final CsvMapper csvMapper = new CsvMapper();
+        final CsvSchema schema = csvMapper.schemaFor(LanguageUsage.class)
+                .withHeader()
+                .withAnyPropertyName("_extra");
+        final ObjectWriter objectWriter = csvMapper.writer(schema);
+        this.csvWriter = objectWriter.writeValues(this.writer);
     }
 
-    @SneakyThrows
-    public void write(Collection<LanguageUsage> usageStream) {
-        for (LanguageUsage usage : usageStream) {
-            writer.write(usage.toCsvRow() + "\n");
-        }
-        writer.flush();
+    public void write(Collection<LanguageUsage> usages) throws IOException {
+        csvWriter.writeAll(usages);
     }
 
     @Override
     public void close() throws IOException {
-        writer.flush();
-        writer.close();
+        csvWriter.close();
     }
 }

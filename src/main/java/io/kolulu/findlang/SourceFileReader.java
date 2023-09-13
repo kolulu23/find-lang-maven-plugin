@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -16,7 +17,7 @@ import java.util.stream.Stream;
  */
 @Getter
 @Setter
-public class SourceFileReader {
+public class SourceFileReader implements Closeable {
     /**
      * Absolute path of source file
      */
@@ -39,5 +40,10 @@ public class SourceFileReader {
 
     public Stream<String> lines() {
         return reader.lines();
+    }
+
+    @Override
+    public void close() throws IOException {
+        reader.close();
     }
 }
