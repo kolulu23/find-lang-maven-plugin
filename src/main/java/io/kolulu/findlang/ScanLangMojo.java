@@ -33,6 +33,9 @@ public class ScanLangMojo extends AbstractMojo {
     @Parameter(defaultValue = "true")
     Boolean skipComments;
 
+    @Parameter(defaultValue = "${project.build.directory}")
+    String reportDirectory;
+
     @Parameter(defaultValue = "report.csv")
     String reportFileName;
 
@@ -66,7 +69,15 @@ public class ScanLangMojo extends AbstractMojo {
     }
 
     private LanguageUsageCsvWriter createUsageWriter() throws IOException {
-        File report = new File(mavenProject.getBasedir(), reportFileName);
+        File reportDir = new File(reportDirectory);
+        if (!reportDir.exists()) {
+            getLog().warn("Report directory not exist, it will be created soon");
+            if (!reportDir.mkdirs()) {
+                getLog().error("Can not create report directory, please turn on stack trace to debug");
+            }
+        }
+        File report = new File(reportDirectory, reportFileName);
+        getLog().warn("Report file will be generated at " + report.getAbsolutePath());
         return new LanguageUsageCsvWriter(report);
     }
 
