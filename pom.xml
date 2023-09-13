@@ -11,6 +11,12 @@
 
     <name>Find Lang Maven Plugin</name>
     <url/>
+    <description>
+        Report language usage in your project. Would be helpful when doing i18n to the source code
+        level is required(although it is weird). Another practical usage would be finding a specific
+        language that is not your working language, like when your co-workers can't read Chinese or French,
+        and you'd like to know which part of code is using them.
+    </description>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -37,6 +43,21 @@
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-core</artifactId>
             <version>3.9.4</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.10.0</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.28</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
@@ -49,6 +70,15 @@
                 <artifactId>maven-plugin-plugin</artifactId>
                 <version>3.9.0</version>
             </plugin>
+            <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-site-plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>4.0.0-M9</version>
+            </plugin>
         </plugins>
     </build>
+
+    <reporting>
+    </reporting>
 </project>
