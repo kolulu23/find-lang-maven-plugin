@@ -21,21 +21,38 @@ import java.util.stream.Collectors;
 @Mojo(name = "scan", defaultPhase = LifecyclePhase.PROCESS_SOURCES)
 public class ScanLangMojo extends AbstractMojo {
 
-    @Parameter(defaultValue = "${project}")
+    /**
+     * The root project reference, does not need to be set by user
+     */
+    @Parameter(defaultValue = "${project}", readonly = true)
     MavenProject mavenProject;
 
+    /**
+     * Since we are using process-sources stage, for simplicity reasons we only scan ${project.compileSourceRoots}
+     */
     @Parameter(defaultValue = "${project.compileSourceRoots}", required = true, readonly = true)
     List<String> sourceRoots;
 
+    /**
+     * Available configs: <br/>
+     * <ul>
+     *     <li>searchPattern: The main search usePattern, default to a built-in language setting</li>
+     *     <li>filterPatterns: Patterns used to further filter out language usages in source code</li>
+     *     <li>skipComments: Skip comments in source code, default to true</li>
+     * </ul>
+     */
     @Parameter
-    String pattern;
+    private LanguagePatternConfig languagePatternConfig;
 
-    @Parameter(defaultValue = "true")
-    Boolean skipComments;
-
+    /**
+     * The directory report file should be located in, must be a directory, not a file
+     */
     @Parameter(defaultValue = "${project.build.directory}")
     String reportDirectory;
 
+    /**
+     * Report file name, it can be located under {@link #reportDirectory}, simple names is preferred
+     */
     @Parameter(defaultValue = "report.csv")
     String reportFileName;
 
@@ -82,15 +99,8 @@ public class ScanLangMojo extends AbstractMojo {
     }
 
     private LanguageUsageRegexFinder createUsageFinder() {
-        LanguageUsageRegexFinder finder;
-        if (pattern == null || pattern.isEmpty()) {
-            // The default is to find any kind of chinese except comments
-            finder = new LanguageUsageRegexFinder(Languages.CHINESE_LITERALS_ONLY)
-                    .setSkipComments(true);
-        } else {
-            finder = new LanguageUsageRegexFinder(pattern)
-                    .setSkipComments(skipComments);
-        }
+        LanguageUsageRegexFinder finder = LanguageUsageFinderFactory.regexFinder(languagePatternConfig);
+        getLog().info(finder.debug());
         return finder;
     }
 }

@@ -30,7 +30,7 @@ public enum Languages {
     JAPANESE("(\\p{Script=Han}|\\p{Script=Katakana}|\\p{Script=Hiragana})+", Locale.JAPANESE);
 
     /**
-     * What pattern to match this language variant
+     * What usePattern to match this language variant
      */
     private final String pattern;
 
